@@ -19,17 +19,38 @@ if (!$koneksi) {
     die("mysqli_init failed");
 }
 
-// Konfigurasi SSL untuk TiDB (Hanya jika bukan localhost atau jika ada ENV DB_HOST)
+// Konfigurasi SSL untuk TiDB
 if (getenv('DB_HOST')) {
-    // Menggunakan default CA system
-    mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL); 
+    // Coba path CA umum di Linux/Vercel
+    $ca_path = NULL;
+    if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
+        $ca_path = '/etc/ssl/certs/ca-certificates.crt';
+    }
+    
+    mysqli_ssl_set($koneksi, NULL, NULL, $ca_path, NULL, NULL); 
     $flags = MYSQLI_CLIENT_SSL;
 } else {
     $flags = 0;
 }
 
-if (!mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, $flags)) {
-    die("Koneksi ke database gagal: " . mysqli_connect_error());
+// Pastikan Port berupa Integer
+$port_int = intval($db_port);
+
+if (!@mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $port_int, NULL, $flags)) {
+    // Tampilkan pesan error detail untuk debugging (Hapus ini nanti jika production!)
+    $error_msg = mysqli_connect_error();
+    echo "<h1>Koneksi Database Gagal</h1>";
+    echo "<p>Error: $error_msg</p>";
+    echo "<hr>";
+    echo "<h3>Debug Info:</h3>";
+    echo "<ul>";
+    echo "<li>Host: $db_host</li>";
+    echo "<li>User: " . substr($db_user, 0, 3) . "***</li>";
+    echo "<li>Port: $port_int</li>";
+    echo "<li>SSL Flag: " . ($flags ? "Active" : "None") . "</li>";
+    echo "<li>CA Path: " . ($ca_path ? $ca_path : "System Default (NULL)") . "</li>";
+    echo "</ul>";
+    die();
 }
 
 date_default_timezone_set('Asia/Jakarta');
