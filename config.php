@@ -49,7 +49,11 @@ try {
 date_default_timezone_set('Asia/Jakarta');
 
 function check_login() {
-    if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+    // Cek Login menggunakan Cookie (Workaround untuk Vercel Serverless)
+    // Validasi token sederhana
+    $expected_token = md5('admin_secret_' . $_SERVER['REMOTE_ADDR']);
+    
+    if (!isset($_COOKIE['auth_token']) || $_COOKIE['auth_token'] !== $expected_token) {
         header('Location: login.php');
         exit;
     }

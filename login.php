@@ -2,8 +2,8 @@
 // login.php
 session_start();
 
-// Jika sudah login, redirect ke dashboard
-if (isset($_SESSION['loggedin']) && $_SESSION['loggedin'] === true) {
+// Jika sudah login (Cek Cookie), redirect ke dashboard
+if (isset($_COOKIE['auth_token']) && $_COOKIE['auth_token'] === md5('admin_secret_' . $_SERVER['REMOTE_ADDR'])) {
     header('Location: index.php');
     exit;
 }
@@ -16,9 +16,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Cek kredensial (untuk contoh ini kita hardcode)
     if ($username === 'admin' && $password === 'admin') {
-        // Jika berhasil, set session
-        $_SESSION['loggedin'] = true;
-        $_SESSION['username'] = 'admin';
+        // Vercel tidak mendukung PHP Native Session (File based) secara persisten.
+        // Kita gunakan Cookies sebagai alternatif sederhana.
+        // Set cookie 'token' yang valid selama 24 jam.
+        $token = md5('admin_secret_' . $_SERVER['REMOTE_ADDR']); // Simple token logic
+        setcookie('auth_token', $token, time() + (86400 * 30), "/"); // 30 days
+        setcookie('username', $username, time() + (86400 * 30), "/");
+        
         header('Location: index.php');
         exit;
     } else {
