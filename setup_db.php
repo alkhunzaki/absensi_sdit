@@ -30,11 +30,35 @@ $queries = [
         FOREIGN KEY (id_siswa) REFERENCES siswa(id_siswa) ON DELETE CASCADE
     )",
     
-    // 3. Insert Data Dummy
+    // 3. Tabel Master Aspek Akhlak
+    "CREATE TABLE IF NOT EXISTS master_aspek (
+        id_aspek INT AUTO_INCREMENT PRIMARY KEY,
+        nama_aspek VARCHAR(255) NOT NULL UNIQUE
+    )",
+
+    // 4. Tabel Penilaian Akhlak
+    "CREATE TABLE IF NOT EXISTS penilaian_akhlak (
+        id_penilaian INT AUTO_INCREMENT PRIMARY KEY,
+        id_siswa INT NOT NULL,
+        tanggal DATE NOT NULL,
+        aspek_penilaian VARCHAR(255) NOT NULL,
+        nilai VARCHAR(50) NOT NULL,
+        catatan TEXT,
+        FOREIGN KEY (id_siswa) REFERENCES siswa(id_siswa) ON DELETE CASCADE
+    )",
+
+    // 5. Insert Data Dummy Siswa
     "INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) VALUES 
     ('Ahmad Zaky', '123456', '0012345678', 'Laki-laki', '3A'),
     ('Siti Aminah', '123457', '0012345679', 'Perempuan', '3A'),
-    ('Budi Santoso', '123458', '0012345680', 'Laki-laki', '3A')"
+    ('Budi Santoso', '123458', '0012345680', 'Laki-laki', '3A')",
+    
+    // 6. Insert Data Dummy Aspek Akhlak
+    "INSERT IGNORE INTO master_aspek (nama_aspek) VALUES 
+    ('Kedisiplinan'),
+    ('Kejujuran'),
+    ('Tanggung Jawab'),
+    ('Kesopanan')"
 ];
 
 $errors = false;
