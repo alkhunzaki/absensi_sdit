@@ -3,6 +3,18 @@ include 'config.php';
 template_portal_header('Pengumuman Sekolah');
 
 // Ambil pengumuman
+$check_table = mysqli_query($koneksi, "SHOW TABLES LIKE 'pengumuman'");
+if (mysqli_num_rows($check_table) == 0) {
+    echo "<div class='bg-red-50 p-10 rounded-3xl border border-red-100 text-center'>";
+    echo "<i class='fas fa-database text-5xl text-red-200 mb-4 block'></i>";
+    echo "<h2 class='text-2xl font-bold text-red-800 mb-2'>Database Update Diperlukan</h2>";
+    echo "<p class='text-red-700 mb-6'>Tabel informasi belum terpasang. Silakan jalankan setup database terlebih dahulu.</p>";
+    echo "<a href='setup_db_new.php' class='bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition-all inline-block'>Mulai Setup Database</a>";
+    echo "</div>";
+    template_portal_footer();
+    exit;
+}
+
 $query = "SELECT * FROM pengumuman ORDER BY tanggal DESC";
 $result = mysqli_query($koneksi, $query);
 ?>

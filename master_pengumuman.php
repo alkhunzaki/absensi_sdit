@@ -35,6 +35,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tambah'])) {
     }
 }
 
+$check_table = mysqli_query($koneksi, "SHOW TABLES LIKE 'pengumuman'");
+if (mysqli_num_rows($check_table) == 0) {
+    echo "<div class='bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-6'>";
+    echo "<p class='font-bold text-yellow-700'>Update Database Diperlukan</p>";
+    echo "<p class='text-yellow-600 mb-2'>Tabel 'pengumuman' belum tersedia di database Anda.</p>";
+    echo "<a href='setup_db_new.php' class='underline font-bold text-yellow-800'>Klik untuk inisialisasi tabel sekarang</a>";
+    echo "</div>";
+    template_footer();
+    exit;
+}
+
 $result = mysqli_query($koneksi, "SELECT * FROM pengumuman ORDER BY tanggal DESC");
 
 template_header('Manajemen Pengumuman');
