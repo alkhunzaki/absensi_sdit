@@ -8,8 +8,8 @@ if (!$nis) {
     exit;
 }
 
-// 1. Ambil Data Siswa (Cek di kolom NIS atau NISN agar lebih fleksibel)
-$query_siswa = "SELECT * FROM siswa WHERE nis = '$nis' OR nisn = '$nis' LIMIT 1";
+// 1. Ambil Data Siswa (Cek di kolom NIS, NISN, atau Nama agar lebih fleksibel)
+$query_siswa = "SELECT * FROM siswa WHERE nis = '$nis' OR nisn = '$nis' OR nama_lengkap LIKE '%$nis%' LIMIT 1";
 $result_siswa = mysqli_query($koneksi, $query_siswa);
 
 if (!$result_siswa) {

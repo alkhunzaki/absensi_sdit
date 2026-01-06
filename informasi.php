@@ -17,6 +17,14 @@ if (mysqli_num_rows($check_table) == 0) {
 
 $query = "SELECT * FROM pengumuman ORDER BY tanggal DESC";
 $result = mysqli_query($koneksi, $query);
+
+if (!$result) {
+    echo "<div class='bg-yellow-50 p-6 rounded-xl border border-yellow-200 text-yellow-800'>";
+    echo "Gagal memuat pengumuman: " . mysqli_error($koneksi);
+    echo "</div>";
+    template_portal_footer();
+    exit;
+}
 ?>
 
 <div class="mb-10 text-center">
