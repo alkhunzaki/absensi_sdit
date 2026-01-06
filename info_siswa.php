@@ -1,21 +1,26 @@
 <?php
 include 'config.php';
 
-$nis = isset($_GET['nis']) ? mysqli_real_escape_string($koneksi, $_GET['nis']) : '';
+$nis = isset($_GET['nis']) ? mysqli_real_escape_string($koneksi, trim($_GET['nis'])) : '';
 
 if (!$nis) {
     header('Location: portal_siswa.php');
     exit;
 }
 
-// 1. Ambil Data Siswa
-$query_siswa = "SELECT * FROM siswa WHERE nis = '$nis'";
+// 1. Ambil Data Siswa (Cek di kolom NIS atau NISN agar lebih fleksibel)
+$query_siswa = "SELECT * FROM siswa WHERE nis = '$nis' OR nisn = '$nis' LIMIT 1";
 $result_siswa = mysqli_query($koneksi, $query_siswa);
+
+if (!$result_siswa) {
+    die("Error Database: " . mysqli_error($koneksi));
+}
+
 $siswa = mysqli_fetch_assoc($result_siswa);
 
 if (!$siswa) {
     echo "<script>
-        alert('Data siswa dengan NIS $nis tidak ditemukan.');
+        alert('Data siswa dengan nomor $nis tidak ditemukan. Pastikan nomor yang dimasukkan benar (NIS atau NISN).');
         window.location.href = 'portal_siswa.php';
     </script>";
     exit;
