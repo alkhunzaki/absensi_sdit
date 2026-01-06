@@ -49,9 +49,9 @@ try {
 date_default_timezone_set('Asia/Jakarta');
 
 function check_login() {
-    // Cek Login menggunakan Cookie (Workaround untuk Vercel Serverless)
-    // Validasi token sederhana
-    $expected_token = md5('admin_secret_' . $_SERVER['REMOTE_ADDR']);
+    // Cek Login menggunakan Cookie
+    // Gunakan static token untuk stabilitas di Vercel (IP sering berubah di Edge Network)
+    $expected_token = md5('admin_secret_static_key');
     
     if (!isset($_COOKIE['auth_token']) || $_COOKIE['auth_token'] !== $expected_token) {
         header('Location: login.php');
