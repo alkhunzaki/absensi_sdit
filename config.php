@@ -13,9 +13,22 @@ $db_pass = getenv('DB_PASS') ?: '';
 $db_name = getenv('DB_NAME') ?: 'db_absensi_sdit';
 $db_port = getenv('DB_PORT') ?: 3306; // Default MySQL port
 
-$koneksi = mysqli_connect($db_host, $db_user, $db_pass, $db_name, $db_port);
+$koneksi = mysqli_init();
 
 if (!$koneksi) {
+    die("mysqli_init failed");
+}
+
+// Konfigurasi SSL untuk TiDB (Hanya jika bukan localhost atau jika ada ENV DB_HOST)
+if (getenv('DB_HOST')) {
+    // Menggunakan default CA system
+    mysqli_ssl_set($koneksi, NULL, NULL, NULL, NULL, NULL); 
+    $flags = MYSQLI_CLIENT_SSL;
+} else {
+    $flags = 0;
+}
+
+if (!mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $db_port, NULL, $flags)) {
     die("Koneksi ke database gagal: " . mysqli_connect_error());
 }
 
