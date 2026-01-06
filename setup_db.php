@@ -7,8 +7,10 @@ echo "<hr>";
 
 // Array Query
 $queries = [
-    "DROP TABLE IF EXISTS absensi", // Drop table anak dulu (Foreign Key)
+    "DROP TABLE IF EXISTS penilaian_akhlak", // Drop table anak dulu (Foreign Key)
+    "DROP TABLE IF EXISTS absensi",
     "DROP TABLE IF EXISTS siswa",
+    "DROP TABLE IF EXISTS master_aspek",
     
     // 1. Tabel Siswa
     "CREATE TABLE IF NOT EXISTS siswa (
