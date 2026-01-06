@@ -8,10 +8,6 @@ echo "<hr>";
 // Array Query
 $queries = [
     "SET FOREIGN_KEY_CHECKS = 0", // Matikan cek foreign key
-    "DROP TABLE IF EXISTS penilaian_akhlak", // Drop table anak dulu (Foreign Key)
-    "DROP TABLE IF EXISTS absensi",
-    "DROP TABLE IF EXISTS siswa",
-    "DROP TABLE IF EXISTS master_aspek",
     
     // 1. Tabel Siswa
     "CREATE TABLE IF NOT EXISTS siswa (
@@ -51,7 +47,7 @@ $queries = [
     )",
 
     // 5. Insert Data Dummy Siswa
-    "INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) VALUES 
+    "INSERT IGNORE INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) VALUES 
     ('Ahmad Zaky', '123456', '0012345678', 'Laki-laki', '3A'),
     ('Siti Aminah', '123457', '0012345679', 'Perempuan', '3A'),
     ('Budi Santoso', '123458', '0012345680', 'Laki-laki', '3A')",
