@@ -7,6 +7,7 @@ echo "<hr>";
 
 // Array Query
 $queries = [
+    "SET FOREIGN_KEY_CHECKS = 0", // Matikan cek foreign key
     "DROP TABLE IF EXISTS penilaian_akhlak", // Drop table anak dulu (Foreign Key)
     "DROP TABLE IF EXISTS absensi",
     "DROP TABLE IF EXISTS siswa",
