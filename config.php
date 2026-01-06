@@ -36,21 +36,14 @@ if (getenv('DB_HOST')) {
 // Pastikan Port berupa Integer
 $port_int = intval($db_port);
 
-if (!@mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $port_int, NULL, $flags)) {
-    // Tampilkan pesan error detail untuk debugging (Hapus ini nanti jika production!)
-    $error_msg = mysqli_connect_error();
-    echo "<h1>Koneksi Database Gagal</h1>";
-    echo "<p>Error: $error_msg</p>";
-    echo "<hr>";
-    echo "<h3>Debug Info:</h3>";
-    echo "<ul>";
-    echo "<li>Host: $db_host</li>";
-    echo "<li>User: " . substr($db_user, 0, 3) . "***</li>";
-    echo "<li>Port: $port_int</li>";
-    echo "<li>SSL Flag: " . ($flags ? "Active" : "None") . "</li>";
-    echo "<li>CA Path: " . ($ca_path ? $ca_path : "System Default (NULL)") . "</li>";
-    echo "</ul>";
-    die();
+try {
+    if (!mysqli_real_connect($koneksi, $db_host, $db_user, $db_pass, $db_name, $port_int, NULL, $flags)) {
+        throw new Exception(mysqli_connect_error());
+    }
+} catch (mysqli_sql_exception $e) {
+    die("Koneksi ke database gagal: " . $e->getMessage());
+} catch (Exception $e) {
+    die("Koneksi ke database gagal: " . $e->getMessage());
 }
 
 date_default_timezone_set('Asia/Jakarta');
