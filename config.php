@@ -136,4 +136,75 @@ echo <<<EOT
 </html>
 EOT;
 }
+
+function template_portal_header($title) {
+    $nama_sekolah = "SDIT Akhyar International Islamic School";
+    echo <<<EOT
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>$title - $nama_sekolah</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+        <style> body { font-family: 'Inter', sans-serif; } </style>
+    </head>
+    <body class="bg-gray-50 text-gray-800">
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <img src="img/aiis.png" class="h-10 w-auto mr-3" alt="Logo" onerror="this.style.display='none'">
+                    <div>
+                        <span class="text-xl font-bold text-blue-800 leading-none block">AIIS Portal</span>
+                        <span class="text-[10px] text-gray-500 uppercase tracking-wider">Walimurid Information System</span>
+                    </div>
+                </div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="portal_siswa.php" class="text-gray-600 hover:text-blue-600 font-medium">Cek Laporan Siswa</a>
+                    <a href="informasi.php" class="text-gray-600 hover:text-blue-600 font-medium">Pengumuman Sekolah</a>
+                    <a href="login.php" class="text-blue-600 hover:text-blue-800 font-semibold border-l pl-6 border-gray-200">Login Admin</a>
+                </div>
+                <!-- Mobile Navigation -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 p-2"><i class="fas fa-bars text-xl"></i></button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100 px-4 py-4 space-y-3">
+            <a href="portal_siswa.php" class="block text-gray-600 hover:text-blue-600 font-medium">Cek Laporan Siswa</a>
+            <a href="informasi.php" class="block text-gray-600 hover:text-blue-600 font-medium">Pengumuman Sekolah</a>
+            <a href="login.php" class="block text-blue-600 hover:text-blue-800 font-semibold pt-2 border-t border-gray-100">Login Admin</a>
+        </div>
+    </nav>
+    <script>
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+EOT;
+}
+
+function template_portal_footer() {
+echo <<<EOT
+    </main>
+    <footer class="bg-white border-t border-gray-200 py-10">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm text-gray-500 mb-2">SDIT Akhyar International Islamic School</p>
+            <p class="text-xs text-gray-400">&copy; 
+EOT;
+echo date('Y');
+echo <<<EOT
+ - Dikembangkan oleh Ardianto Bagas</p>
+        </div>
+    </footer>
+    </body>
+</html>
+EOT;
+}
 ?>
