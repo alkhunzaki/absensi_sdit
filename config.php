@@ -96,6 +96,7 @@ function template_header($title) {
                     <a href="penilaian_akhlak.php" class="flex items-center px-4 py-3 mt-2 rounded-lg hover:bg-blue-700"><i class="fas fa-award w-6"></i><span class="ml-3">Penilaian Akhlak</span></a>
                     <a href="rekap.php" class="flex items-center px-4 py-3 mt-2 rounded-lg hover:bg-blue-700"><i class="fas fa-file-alt w-6"></i><span class="ml-3">Rekap Kehadiran</span></a>
                     <a href="rekap_akhlak.php" class="flex items-center px-4 py-3 mt-2 rounded-lg hover:bg-blue-700"><i class="fas fa-book-open w-6"></i><span class="ml-3">Rekap Akhlak</span></a>
+                    <a href="master_pengumuman.php" class="flex items-center px-4 py-3 mt-2 rounded-lg hover:bg-blue-700"><i class="fas fa-bullhorn w-6"></i><span class="ml-3">Input Pengumuman</span></a>
                     <a href="laporan_individu.php" class="flex items-center px-4 py-3 mt-2 rounded-lg hover:bg-blue-700"><i class="fas fa-print w-6"></i><span class="ml-3">Cetak Laporan Siswa</span></a>
                 </div>
                 <div>
