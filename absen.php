@@ -9,24 +9,33 @@ $pesan = isset($_GET['pesan']) ? $_GET['pesan'] : '';
 
 // Logika untuk menyimpan data absensi
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['absensi'])) {
+    check_csrf($_POST['csrf_token'] ?? '');
+    
     $absensi_data = $_POST['absensi'];
     $tanggal_absen = $_POST['tanggal_absen'];
 
+    // Siapkan statement di luar loop untuk efisiensi
+    $stmt_cek = mysqli_prepare($koneksi, "SELECT id_absensi FROM absensi WHERE id_siswa = ? AND tanggal = ?");
+    $stmt_update = mysqli_prepare($koneksi, "UPDATE absensi SET status = ?, catatan = ? WHERE id_absensi = ?");
+    $stmt_insert = mysqli_prepare($koneksi, "INSERT INTO absensi (id_siswa, tanggal, status, catatan) VALUES (?, ?, ?, ?)");
+
     foreach ($absensi_data as $id_siswa => $data) {
-        $status = mysqli_real_escape_string($koneksi, $data['status']);
-        $catatan = mysqli_real_escape_string($koneksi, $data['catatan']);
+        $status = $data['status'];
+        $catatan = $data['catatan'];
         $id_siswa_safe = (int)$id_siswa;
 
-        $cek_query = "SELECT id_absensi FROM absensi WHERE id_siswa = $id_siswa_safe AND tanggal = '$tanggal_absen'";
-        $result_cek = mysqli_query($koneksi, $cek_query);
+        mysqli_stmt_bind_param($stmt_cek, "is", $id_siswa_safe, $tanggal_absen);
+        mysqli_stmt_execute($stmt_cek);
+        $result_cek = mysqli_stmt_get_result($stmt_cek);
 
-        if (mysqli_num_rows($result_cek) > 0) {
-            $id_absensi = mysqli_fetch_assoc($result_cek)['id_absensi'];
-            $query = "UPDATE absensi SET status = '$status', catatan = '$catatan' WHERE id_absensi = $id_absensi";
+        if ($row_cek = mysqli_fetch_assoc($result_cek)) {
+            $id_absensi = $row_cek['id_absensi'];
+            mysqli_stmt_bind_param($stmt_update, "ssi", $status, $catatan, $id_absensi);
+            mysqli_stmt_execute($stmt_update);
         } else {
-            $query = "INSERT INTO absensi (id_siswa, tanggal, status, catatan) VALUES ($id_siswa_safe, '$tanggal_absen', '$status', '$catatan')";
+            mysqli_stmt_bind_param($stmt_insert, "isss", $id_siswa_safe, $tanggal_absen, $status, $catatan);
+            mysqli_stmt_execute($stmt_insert);
         }
-        mysqli_query($koneksi, $query);
     }
     
     $pesan_sukses = "Absensi untuk tanggal " . date("d-m-Y", strtotime($tanggal_absen)) . " berhasil disimpan!";
@@ -71,7 +80,8 @@ template_header('Absen Kehadiran');
 
     <!-- ... (kode form absensi sama seperti sebelumnya) ... -->
     <form action="absen.php" method="post">
-        <input type="hidden" name="tanggal_absen" value="<?= htmlspecialchars($tanggal_filter) ?>">
+        <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
+        <input type="hidden" name="tanggal_absen" value="<?= e($tanggal_filter) ?>">
         <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Absensi untuk: <?= date("d F Y", strtotime($tanggal_filter)) ?></h2>
             <button type="button" id="hadirSemuaBtn" class="py-2 px-4 bg-green-500 text-white rounded-md hover:bg-green-600">
@@ -96,7 +106,7 @@ template_header('Absen Kehadiran');
                     ?>
                     <tr>
                         <td class="px-6 py-4 text-sm text-gray-500"><?= $no++ ?></td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= htmlspecialchars($siswa['nama_lengkap']) ?></td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= e($siswa['nama_lengkap']) ?></td>
                         <td class="px-6 py-4 text-sm text-gray-500">
                             <div class="flex flex-wrap gap-x-4 gap-y-2">
                                 <?php foreach (['Hadir', 'Izin', 'Sakit', 'Alfa'] as $status): ?>
@@ -108,7 +118,7 @@ template_header('Absen Kehadiran');
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <input type="text" name="absensi[<?= $id_siswa ?>][catatan]" value="<?= htmlspecialchars($catatan_tersimpan) ?>" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm" placeholder="Catatan...">
+                            <input type="text" name="absensi[<?= $id_siswa ?>][catatan]" value="<?= e($catatan_tersimpan) ?>" class="w-full px-2 py-1 border border-gray-300 rounded-md text-sm" placeholder="Catatan...">
                         </td>
                     </tr>
                     <?php endwhile; ?>

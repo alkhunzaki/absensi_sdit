@@ -1,16 +1,19 @@
 <?php
 include 'config.php';
 
-$nis = isset($_GET['nis']) ? mysqli_real_escape_string($koneksi, trim($_GET['nis'])) : '';
+$nis = isset($_GET['nis']) ? trim($_GET['nis']) : '';
 
 if (!$nis) {
     header('Location: portal_siswa.php');
     exit;
 }
 
-// 1. Ambil Data Siswa (Cek di kolom NIS, NISN, atau Nama agar lebih fleksibel)
-$query_siswa = "SELECT * FROM siswa WHERE nis = '$nis' OR nisn = '$nis' OR nama_lengkap LIKE '%$nis%' LIMIT 1";
-$result_siswa = mysqli_query($koneksi, $query_siswa);
+// 1. Ambil Data Siswa menggunakan Prepared Statement
+$search_param = "%$nis%";
+$stmt = mysqli_prepare($koneksi, "SELECT * FROM siswa WHERE nis = ? OR nisn = ? OR nama_lengkap LIKE ? LIMIT 1");
+mysqli_stmt_bind_param($stmt, "sss", $nis, $nis, $search_param);
+mysqli_stmt_execute($stmt);
+$result_siswa = mysqli_stmt_get_result($stmt);
 
 if (!$result_siswa) {
     die("Error Database: " . mysqli_error($koneksi));
@@ -60,8 +63,8 @@ template_portal_header('Laporan ' . $siswa['nama_lengkap']);
                 </li>
             </ol>
         </nav>
-        <h1 class="text-3xl font-bold text-gray-900"><?= $siswa['nama_lengkap'] ?></h1>
-        <p class="text-gray-500">Kelas <?= $siswa['kelas'] ?> | NIS: <?= $siswa['nis'] ?></p>
+        <h1 class="text-3xl font-bold text-gray-900"><?= e($siswa['nama_lengkap']) ?></h1>
+        <p class="text-gray-500">Kelas <?= e($siswa['kelas']) ?> | NIS: <?= e($siswa['nis']) ?></p>
     </div>
     <div class="flex gap-3">
         <a href="download_laporan_individu.php?id=<?= $id_siswa ?>" target="_blank" 
@@ -80,11 +83,11 @@ template_portal_header('Laporan ' . $siswa['nama_lengkap']);
             <div class="space-y-3">
                 <div class="flex justify-between">
                     <span class="text-gray-500">NISN</span>
-                    <span class="font-medium"><?= $siswa['nisn'] ?></span>
+                    <span class="font-medium"><?= e($siswa['nisn']) ?></span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Jenis Kelamin</span>
-                    <span class="font-medium"><?= $siswa['jenis_kelamin'] ?></span>
+                    <span class="font-medium"><?= e($siswa['jenis_kelamin']) ?></span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-500">Tahun Ajaran</span>
@@ -134,8 +137,8 @@ template_portal_header('Laporan ' . $siswa['nama_lengkap']);
                         <div class="relative pl-8 border-l-2 border-blue-100 pb-2">
                             <div class="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-white"></div>
                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1">
-                                <h3 class="font-bold text-gray-800 text-lg"><?= $row['aspek_penilaian'] ?></h3>
-                                <span class="text-sm text-gray-500"><i class="far fa-calendar-alt mr-1"></i> <?= $row['tanggal'] ?></span>
+                                <h3 class="font-bold text-gray-800 text-lg"><?= e($row['aspek_penilaian']) ?></h3>
+                                <span class="text-sm text-gray-500"><i class="far fa-calendar-alt mr-1"></i> <?= e($row['tanggal']) ?></span>
                             </div>
                             <div class="flex items-center gap-4 mb-2">
                                 <div class="flex text-yellow-400">
@@ -148,10 +151,10 @@ template_portal_header('Laporan ' . $siswa['nama_lengkap']);
                                     for($i=1; $i<=5; $i++) echo "<i class='fas fa-star ".($i<=$n ? "" : "text-gray-200")."'></i>";
                                     ?>
                                 </div>
-                                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded capitalize"><?= $row['nilai'] ?></span>
+                                <span class="px-2 py-0.5 bg-blue-100 text-blue-800 text-xs font-bold rounded capitalize"><?= e($row['nilai']) ?></span>
                             </div>
                             <p class="text-gray-600 text-sm italic bg-gray-50 p-3 rounded-lg border-l-4 border-gray-200">
-                                "<?= $row['catatan'] ?: 'Tidak ada catatan khusus.' ?>"
+                                "<?= $row['catatan'] ? e($row['catatan']) : 'Tidak ada catatan khusus.' ?>"
                             </p>
                         </div>
                     <?php endwhile; ?>

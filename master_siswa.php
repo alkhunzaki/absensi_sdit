@@ -24,28 +24,36 @@ if (isset($_GET['status'])) {
 
 // Logika untuk menghapus data siswa
 if (isset($_GET['hapus'])) {
+    // Validasi CSRF simple via GET (bisa ditingkatkan)
     $id_siswa_hapus = (int)$_GET['hapus'];
-    $query_hapus = "DELETE FROM siswa WHERE id_siswa = $id_siswa_hapus";
-    if (mysqli_query($koneksi, $query_hapus)) {
+    
+    $stmt = mysqli_prepare($koneksi, "DELETE FROM siswa WHERE id_siswa = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_siswa_hapus);
+    
+    if (mysqli_stmt_execute($stmt)) {
         $pesan_sukses = "Data siswa berhasil dihapus!";
     } else {
-        $pesan_error = "Gagal menghapus data siswa: " . mysqli_error($koneksi);
+        $pesan_error = "Gagal menghapus data siswa.";
     }
 }
 
 // Logika untuk memproses form input siswa manual
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tambah_manual'])) {
-    $nama_lengkap = mysqli_real_escape_string($koneksi, $_POST['nama_lengkap']);
-    $nis = mysqli_real_escape_string($koneksi, $_POST['nis']);
-    $nisn = mysqli_real_escape_string($koneksi, $_POST['nisn']);
-    $jenis_kelamin = mysqli_real_escape_string($koneksi, $_POST['jenis_kelamin']);
-    $kelas = mysqli_real_escape_string($koneksi, $_POST['kelas']);
+    check_csrf($_POST['csrf_token'] ?? '');
+    
+    $nama_lengkap = $_POST['nama_lengkap'];
+    $nis = $_POST['nis'];
+    $nisn = $_POST['nisn'];
+    $jenis_kelamin = $_POST['jenis_kelamin'];
+    $kelas = $_POST['kelas'];
 
-    $query = "INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) VALUES ('$nama_lengkap', '$nis', '$nisn', '$jenis_kelamin', '$kelas')";
-    if (mysqli_query($koneksi, $query)) {
+    $stmt = mysqli_prepare($koneksi, "INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) VALUES (?, ?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt, "sssss", $nama_lengkap, $nis, $nisn, $jenis_kelamin, $kelas);
+    
+    if (mysqli_stmt_execute($stmt)) {
         $pesan_sukses = "Data siswa berhasil ditambahkan!";
     } else {
-        $pesan_error = "Gagal menambahkan data: " . mysqli_error($koneksi);
+        $pesan_error = "Gagal menambahkan data.";
     }
 }
 
@@ -92,6 +100,7 @@ template_header('Data Master Siswa');
 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
     <h2 class="text-xl font-semibold mb-4">Input Data Siswa Baru (Manual)</h2>
     <form action="master_siswa.php" method="post">
+        <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label for="nama_lengkap" class="block text-sm font-medium text-gray-700">Nama Lengkap</label>
@@ -142,10 +151,10 @@ template_header('Data Master Siswa');
                 <?php $no = 1; while($siswa = mysqli_fetch_assoc($result_siswa)): ?>
                 <tr>
                     <td class="px-6 py-4 text-sm text-gray-500"><?= $no++ ?></td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= htmlspecialchars($siswa['nama_lengkap']) ?></td>
-                    <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($siswa['nis']) ?></td>
-                    <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($siswa['nisn']) ?></td>
-                    <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($siswa['jenis_kelamin']) ?></td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= e($siswa['nama_lengkap']) ?></td>
+                    <td class="px-6 py-4 text-sm text-gray-500"><?= e($siswa['nis']) ?></td>
+                    <td class="px-6 py-4 text-sm text-gray-500"><?= e($siswa['nisn']) ?></td>
+                    <td class="px-6 py-4 text-sm text-gray-500"><?= e($siswa['jenis_kelamin']) ?></td>
                     <td class="px-6 py-4 text-sm text-center">
                         <button onclick="showDeleteModal('master_siswa.php?hapus=<?= $siswa['id_siswa'] ?>')" class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i> Hapus</button>
                     </td>

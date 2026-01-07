@@ -48,12 +48,29 @@ try {
 
 date_default_timezone_set('Asia/Jakarta');
 
+// Helper untuk mencegah XSS (Cross-Site Scripting)
+function e($string) {
+    return htmlspecialchars($string, ENT_QUOTES, 'UTF-8');
+}
+
+// CSRF Protection
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+function check_csrf($token) {
+    if (!isset($_SESSION['csrf_token']) || $token !== $_SESSION['csrf_token']) {
+        die("CSRF Token validation failed.");
+    }
+}
+
+function get_csrf_token() {
+    return $_SESSION['csrf_token'];
+}
+
 function check_login() {
-    // Cek Login menggunakan Cookie
-    // Gunakan static token untuk stabilitas di Vercel (IP sering berubah di Edge Network)
-    $expected_token = md5('admin_secret_static_key');
-    
-    if (!isset($_COOKIE['auth_token']) || $_COOKIE['auth_token'] !== $expected_token) {
+    // Gunakan PHP Native Session yang sudah diperbaiki untuk auth
+    if (!isset($_SESSION['admin_id'])) {
         header('Location: login.php');
         exit;
     }

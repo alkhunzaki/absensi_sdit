@@ -1,35 +1,41 @@
-<?php
-// login.php
-session_start();
+include 'config.php';
 
-// Jika sudah login (Cek Cookie), redirect ke dashboard
-if (isset($_COOKIE['auth_token']) && $_COOKIE['auth_token'] === md5('admin_secret_static_key')) {
+// Jika sudah login, redirect ke dashboard
+if (isset($_SESSION['admin_id'])) {
     header('Location: index.php');
     exit;
 }
 
 $error_msg = '';
-// Proses form jika ada data yang dikirim
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    // Validasi CSRF
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("Invalid CSRF token");
+    }
+
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // Cek kredensial (untuk contoh ini kita hardcode)
-    if ($username === 'admin' && $password === 'admin') {
-        // Vercel tidak mendukung PHP Native Session (File based) secara persisten.
-        // Kita gunakan Cookies sebagai alternatif sederhana.
-        // Set cookie 'token' yang valid selama 30 hari.
-        $token = md5('admin_secret_static_key'); 
-        setcookie('auth_token', $token, time() + (86400 * 30), "/"); 
-        setcookie('username', $username, time() + (86400 * 30), "/");
-        
-        header('Location: index.php');
-        exit;
+    // Gunakan Prepared Statement untuk cek user
+    $stmt = mysqli_prepare($koneksi, "SELECT id, password FROM users WHERE username = ?");
+    mysqli_stmt_bind_param($stmt, "s", $username);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+    
+    if ($user = mysqli_fetch_assoc($result)) {
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['admin_id'] = $user['id'];
+            $_SESSION['username'] = $username;
+            
+            header('Location: index.php');
+            exit;
+        } else {
+            $error_msg = 'Username atau password salah!';
+        }
     } else {
         $error_msg = 'Username atau password salah!';
     }
 }
-?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -57,6 +63,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
 
             <form class="space-y-6" action="login.php" method="post">
+                <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
                 <div>
                     <label for="username" class="text-sm font-bold text-gray-600 block">Username</label>
                     <input type="text" id="username" name="username" class="w-full p-2 border border-gray-300 rounded-md mt-1 focus:ring-blue-500 focus:border-blue-500" required>

@@ -1,14 +1,11 @@
 <?php
-// logout.php
-session_start();
-
-// Hapus semua variabel session
-$_SESSION = array();
-
-// Hancurkan session
+include 'config.php';
+session_start(); // session_start() must be called before any session operations
+// Hapus semua session
+session_unset();
 session_destroy();
-
-// Redirect ke halaman login
-header("location: login.php");
+// Hapus cookies (legacy)
+setcookie('auth_token', '', time() - 3600, "/");
+header('Location: login.php');
 exit;
 ?>
