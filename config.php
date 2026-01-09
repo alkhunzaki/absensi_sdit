@@ -4,6 +4,14 @@ File: config.php
 Fungsi: Konfigurasi utama, koneksi database, dan template.
 ==================================================
 */
+// Pengaturan Sesi untuk Vercel (Menggunakan /tmp jika filesystem read-only)
+if (getenv('VERCEL') || getenv('DB_HOST')) {
+    ini_set('session.save_path', '/tmp');
+}
+ini_set('session.cookie_httponly', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
+
 session_start();
 
 // Pengaturan Database (Support Local Laragon & Vercel/Railway)
