@@ -17,23 +17,38 @@ $query_rekap = "
 ";
 
 $where_clauses = [];
+$params = [];
+$types = "";
+
 if ($filter_tipe == 'bulanan') {
-    $where_clauses[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = '$filter_bulan'";
+    $where_clauses[] = "DATE_FORMAT(a.tanggal, '%Y-%m') = ?";
+    $params[] = $filter_bulan;
+    $types .= "s";
 } else { // pekanan
     $tahun = substr($filter_pekan, 0, 4);
     $pekan = substr($filter_pekan, 6, 2);
-    $where_clauses[] = "YEARWEEK(a.tanggal, 1) = '$tahun$pekan'";
+    $where_clauses[] = "YEARWEEK(a.tanggal, 1) = ?";
+    $params[] = $tahun . $pekan;
+    $types .= "s";
 }
 
 if ($filter_siswa) {
-    $where_clauses[] = "a.id_siswa = $filter_siswa";
+    $where_clauses[] = "a.id_siswa = ?";
+    $params[] = $filter_siswa;
+    $types .= "i";
 }
 
 if (!empty($where_clauses)) {
     $query_rekap .= " WHERE " . implode(' AND ', $where_clauses);
 }
 $query_rekap .= " ORDER BY a.tanggal DESC, s.nama_lengkap ASC";
-$result_rekap = mysqli_query($koneksi, $query_rekap);
+
+$stmt_rekap = mysqli_prepare($koneksi, $query_rekap);
+if (!empty($params)) {
+    mysqli_stmt_bind_param($stmt_rekap, $types, ...$params);
+}
+mysqli_stmt_execute($stmt_rekap);
+$result_rekap = mysqli_stmt_get_result($stmt_rekap);
 
 $result_siswa_filter = mysqli_query($koneksi, "SELECT id_siswa, nama_lengkap FROM siswa ORDER BY nama_lengkap ASC");
 
@@ -104,8 +119,8 @@ template_header('Rekapitulasi Absensi');
                     <?php mysqli_data_seek($result_rekap, 0); while($rekap = mysqli_fetch_assoc($result_rekap)): ?>
                     <tr>
                         <td class="px-6 py-4 text-sm text-gray-500"><?= date("d M Y", strtotime($rekap['tanggal'])) ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($rekap['nis']) ?></td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= htmlspecialchars($rekap['nama_lengkap']) ?></td>
+                        <td class="px-6 py-4 text-sm text-gray-500"><?= e($rekap['nis']) ?></td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= e($rekap['nama_lengkap']) ?></td>
                         <td class="px-6 py-4 text-sm">
                             <?php 
                                 $status = $rekap['status'];
@@ -115,11 +130,11 @@ template_header('Rekapitulasi Absensi');
                                 if ($status == 'Sakit') $color = 'blue';
                                 if ($status == 'Alfa') $color = 'red';
                             ?>
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-<?= $color ?>-100 text-<?= $color ?>-800">
-                                <?= $status ?>
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-<?= e($color) ?>-100 text-<?= e($color) ?>-800">
+                                <?= e($status) ?>
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($rekap['catatan']) ?></td>
+                        <td class="px-6 py-4 text-sm text-gray-500"><?= e($rekap['catatan']) ?></td>
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>

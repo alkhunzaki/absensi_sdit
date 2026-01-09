@@ -1,3 +1,4 @@
+<?php
 include 'config.php';
 
 // Jika sudah login, redirect ke dashboard
@@ -36,6 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error_msg = 'Username atau password salah!';
     }
 }
+?>
 <!DOCTYPE html>
 <html>
 <head>

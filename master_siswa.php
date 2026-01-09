@@ -24,7 +24,7 @@ if (isset($_GET['status'])) {
 
 // Logika untuk menghapus data siswa
 if (isset($_GET['hapus'])) {
-    // Validasi CSRF simple via GET (bisa ditingkatkan)
+    check_csrf($_GET['csrf_token'] ?? '');
     $id_siswa_hapus = (int)$_GET['hapus'];
     
     $stmt = mysqli_prepare($koneksi, "DELETE FROM siswa WHERE id_siswa = ?");
@@ -156,7 +156,7 @@ template_header('Data Master Siswa');
                     <td class="px-6 py-4 text-sm text-gray-500"><?= e($siswa['nisn']) ?></td>
                     <td class="px-6 py-4 text-sm text-gray-500"><?= e($siswa['jenis_kelamin']) ?></td>
                     <td class="px-6 py-4 text-sm text-center">
-                        <button onclick="showDeleteModal('master_siswa.php?hapus=<?= $siswa['id_siswa'] ?>')" class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i> Hapus</button>
+                        <button onclick="showDeleteModal('master_siswa.php?hapus=<?= $siswa['id_siswa'] ?>&csrf_token=<?= get_csrf_token() ?>')" class="text-red-600 hover:text-red-900"><i class="fas fa-trash-alt"></i> Hapus</button>
                     </td>
                 </tr>
                 <?php endwhile; ?>

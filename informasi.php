@@ -42,24 +42,24 @@ if (!$result) {
             elseif ($row['kategori'] == 'Libur') { $color = 'red'; $icon = 'home'; }
             ?>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                <div class="h-2 bg-<?= $color ?>-500"></div>
+                <div class="h-2 bg-<?= e($color) ?>-500"></div>
                 <div class="p-6">
                     <div class="flex items-center justify-between mb-4">
-                        <span class="px-3 py-1 bg-<?= $color ?>-50 text-<?= $color ?>-700 text-xs font-bold rounded-full uppercase border border-<?= $color ?>-100">
-                            <i class="fas fa-<?= $icon ?> mr-1"></i> <?= $row['kategori'] ?>
+                        <span class="px-3 py-1 bg-<?= e($color) ?>-50 text-<?= e($color) ?>-700 text-xs font-bold rounded-full uppercase border border-<?= e($color) ?>-100">
+                            <i class="fas fa-<?= e($icon) ?> mr-1"></i> <?= e($row['kategori']) ?>
                         </span>
                         <span class="text-xs text-gray-400 font-medium"><?= date('d M Y', strtotime($row['tanggal'])) ?></span>
                     </div>
-                    <h2 class="text-xl font-bold text-gray-800 mb-3 leading-tight"><?= $row['judul'] ?></h2>
+                    <h2 class="text-xl font-bold text-gray-800 mb-3 leading-tight"><?= e($row['judul']) ?></h2>
                     <p class="text-gray-600 text-sm mb-6 line-clamp-3">
-                        <?= nl2br($row['isi']) ?>
+                        <?= nl2br(e($row['isi'])) ?>
                     </p>
                     <button onclick="Swal.fire({
-                        title: '<?= addslashes($row['judul']) ?>',
-                        html: '<div class=\'text-left text-sm\'><?= str_replace(["\r", "\n"], '', nl2br(addslashes($row['isi']))) ?></div>',
+                        title: '<?= addslashes(e($row['judul'])) ?>',
+                        html: '<div class=\'text-left text-sm\'><?= str_replace(["\r", "\n"], '', nl2br(addslashes(e($row['isi'])))) ?></div>',
                         icon: 'info',
                         confirmButtonText: 'Tutup'
-                    })" class="text-<?= $color ?>-600 font-bold text-sm flex items-center hover:underline focus:outline-none">
+                    })" class="text-<?= e($color) ?>-600 font-bold text-sm flex items-center hover:underline focus:outline-none">
                         Baca Selengkapnya <i class="fas fa-arrow-right ml-2 text-xs"></i>
                     </button>
                 </div>

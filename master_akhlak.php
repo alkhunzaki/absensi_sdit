@@ -8,9 +8,13 @@ $pesan_error = '';
 
 // Logika untuk menghapus aspek
 if (isset($_GET['hapus'])) {
+    check_csrf($_GET['csrf_token'] ?? '');
     $id_aspek_hapus = (int)$_GET['hapus'];
-    $query_hapus = "DELETE FROM master_aspek WHERE id_aspek = $id_aspek_hapus";
-    if (mysqli_query($koneksi, $query_hapus)) {
+    
+    $stmt_hapus = mysqli_prepare($koneksi, "DELETE FROM master_aspek WHERE id_aspek = ?");
+    mysqli_stmt_bind_param($stmt_hapus, "i", $id_aspek_hapus);
+    
+    if (mysqli_stmt_execute($stmt_hapus)) {
         $pesan_sukses = "Aspek penilaian berhasil dihapus!";
     } else {
         $pesan_error = "Gagal menghapus aspek: " . mysqli_error($koneksi);
@@ -19,16 +23,19 @@ if (isset($_GET['hapus'])) {
 
 // Logika untuk menambah aspek baru
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['nama_aspek'])) {
-    $nama_aspek = mysqli_real_escape_string($koneksi, $_POST['nama_aspek']);
+    check_csrf($_POST['csrf_token'] ?? '');
+    $nama_aspek = trim($_POST['nama_aspek']);
 
     if (!empty($nama_aspek)) {
-        $query = "INSERT INTO master_aspek (nama_aspek) VALUES ('$nama_aspek')";
-        if (mysqli_query($koneksi, $query)) {
+        $stmt_tambah = mysqli_prepare($koneksi, "INSERT INTO master_aspek (nama_aspek) VALUES (?)");
+        mysqli_stmt_bind_param($stmt_tambah, "s", $nama_aspek);
+        
+        if (mysqli_stmt_execute($stmt_tambah)) {
             $pesan_sukses = "Aspek penilaian baru berhasil ditambahkan!";
         } else {
             // Cek jika error karena duplikat
             if(mysqli_errno($koneksi) == 1062) {
-                $pesan_error = "Gagal menambahkan: Aspek '" . htmlspecialchars($nama_aspek) . "' sudah ada.";
+                $pesan_error = "Gagal menambahkan: Aspek '" . e($nama_aspek) . "' sudah ada.";
             } else {
                 $pesan_error = "Gagal menambahkan aspek: " . mysqli_error($koneksi);
             }
@@ -49,6 +56,7 @@ template_header('Master Penilaian Akhlak');
 <div class="bg-white p-6 rounded-lg shadow-md mb-6">
     <h2 class="text-xl font-semibold mb-4">Tambah Aspek Penilaian Baru</h2>
     <form action="master_akhlak.php" method="post" class="flex items-end gap-4">
+        <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
         <div class="flex-grow">
             <label for="nama_aspek" class="block text-sm font-medium text-gray-700">Nama Aspek</label>
             <input type="text" name="nama_aspek" id="nama_aspek" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Contoh: Adab Berbicara" required>
@@ -77,9 +85,9 @@ template_header('Master Penilaian Akhlak');
                 <?php $no = 1; while($aspek = mysqli_fetch_assoc($result_aspek)): ?>
                 <tr>
                     <td class="px-6 py-4 text-sm text-gray-500"><?= $no++ ?></td>
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= htmlspecialchars($aspek['nama_aspek']) ?></td>
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= e($aspek['nama_aspek']) ?></td>
                     <td class="px-6 py-4 text-sm text-center">
-                        <a href="master_akhlak.php?hapus=<?= $aspek['id_aspek'] ?>" class="text-red-600 hover:text-red-900" onclick="event.preventDefault(); showDeleteModal(this.href);">
+                        <a href="master_akhlak.php?hapus=<?= $aspek['id_aspek'] ?>&csrf_token=<?= get_csrf_token() ?>" class="text-red-600 hover:text-red-900" onclick="event.preventDefault(); showDeleteModal(this.href);">
                             <i class="fas fa-trash-alt"></i> Hapus
                         </a>
                     </td>

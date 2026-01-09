@@ -26,26 +26,31 @@ if (isset($_POST['impor'])) {
                     continue;
                 }
 
-                // Ambil dan bersihkan data
-                $nama_lengkap = mysqli_real_escape_string($koneksi, $data[0]);
-                $nis = mysqli_real_escape_string($koneksi, $data[1]);
-                $nisn = mysqli_real_escape_string($koneksi, $data[2]);
-                $jenis_kelamin = mysqli_real_escape_string($koneksi, $data[3]);
-                $kelas = mysqli_real_escape_string($koneksi, $data[4]);
+                // Ambil data (tidak perlu escape manual jika menggunakan prepared statement)
+                $nama_lengkap = $data[0] ?? '';
+                $nis = $data[1] ?? '';
+                $nisn = $data[2] ?? '';
+                $jenis_kelamin = $data[3] ?? '';
+                $kelas = $data[4] ?? '';
 
                 // Hanya proses jika nama tidak kosong
                 if (!empty($nama_lengkap)) {
-                    // Query untuk memasukkan atau memperbarui data
-                    $query = "
-                        INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) 
-                        VALUES ('$nama_lengkap', '$nis', '$nisn', '$jenis_kelamin', '$kelas')
-                        ON DUPLICATE KEY UPDATE 
-                        nama_lengkap = VALUES(nama_lengkap), 
-                        jenis_kelamin = VALUES(jenis_kelamin), 
-                        kelas = VALUES(kelas)
-                    ";
+                    // Gunakan Prepared Statement untuk keamanan dan performa
+                    if (!isset($stmt_import)) {
+                        $query = "
+                            INSERT INTO siswa (nama_lengkap, nis, nisn, jenis_kelamin, kelas) 
+                            VALUES (?, ?, ?, ?, ?)
+                            ON DUPLICATE KEY UPDATE 
+                            nama_lengkap = VALUES(nama_lengkap), 
+                            jenis_kelamin = VALUES(jenis_kelamin), 
+                            kelas = VALUES(kelas)
+                        ";
+                        $stmt_import = mysqli_prepare($koneksi, $query);
+                    }
                     
-                    if (mysqli_query($koneksi, $query)) {
+                    mysqli_stmt_bind_param($stmt_import, "sssss", $nama_lengkap, $nis, $nisn, $jenis_kelamin, $kelas);
+                    
+                    if (mysqli_stmt_execute($stmt_import)) {
                         $jumlah_sukses++;
                     }
                 }

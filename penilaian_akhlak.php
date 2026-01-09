@@ -12,21 +12,31 @@ $status_pesan = '';
 $tanggal_filter = isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['penilaian'])) {
+    check_csrf($_POST['csrf_token'] ?? '');
+    
     $penilaian_data = $_POST['penilaian'];
     $tanggal_penilaian = $_POST['tanggal_penilaian'];
     $berhasil_disimpan = 0;
+
+    $stmt_save = mysqli_prepare($koneksi, "INSERT INTO penilaian_akhlak (id_siswa, tanggal, aspek_penilaian, nilai, catatan) VALUES (?, ?, ?, ?, ?)");
+
     foreach ($penilaian_data as $id_siswa => $data) {
-        $aspek_dropdown = mysqli_real_escape_string($koneksi, $data['aspek_dropdown']);
-        $aspek_lainnya = mysqli_real_escape_string($koneksi, $data['aspek_lainnya']);
-        $nilai = mysqli_real_escape_string($koneksi, $data['nilai']);
-        $catatan = mysqli_real_escape_string($koneksi, $data['catatan']);
+        $aspek_dropdown = $data['aspek_dropdown'] ?? '';
+        $aspek_lainnya = $data['aspek_lainnya'] ?? '';
+        $nilai = $data['nilai'] ?? '';
+        $catatan = $data['catatan'] ?? '';
         $id_siswa_safe = (int)$id_siswa;
+        
         $aspek_final = ($aspek_dropdown === 'Lainnya') ? $aspek_lainnya : $aspek_dropdown;
+        
         if (!empty($aspek_final) && $aspek_dropdown !== '') {
-            $query = "INSERT INTO penilaian_akhlak (id_siswa, tanggal, aspek_penilaian, nilai, catatan) VALUES ($id_siswa_safe, '$tanggal_penilaian', '$aspek_final', '$nilai', '$catatan')";
-            if(mysqli_query($koneksi, $query)) { $berhasil_disimpan++; }
+            mysqli_stmt_bind_param($stmt_save, "issss", $id_siswa_safe, $tanggal_penilaian, $aspek_final, $nilai, $catatan);
+            if(mysqli_stmt_execute($stmt_save)) { 
+                $berhasil_disimpan++; 
+            }
         }
     }
+    
     if ($berhasil_disimpan > 0) {
         $pesan = "Sebanyak " . $berhasil_disimpan . " data penilaian berhasil disimpan!";
         $status_pesan = "sukses";
@@ -57,6 +67,7 @@ template_header('Penilaian Akhlak & Adab');
     </form>
     <hr class="my-4">
     <form action="penilaian_akhlak.php" method="post">
+        <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
         <input type="hidden" name="tanggal_penilaian" value="<?= htmlspecialchars($tanggal_filter) ?>">
         <h2 class="text-xl font-semibold mb-4">Form Penilaian untuk: <?= date("d F Y", strtotime($tanggal_filter)) ?></h2>
         <div class="overflow-x-auto">

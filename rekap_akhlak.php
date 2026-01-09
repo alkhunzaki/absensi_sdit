@@ -16,24 +16,38 @@ $query_rekap = "
     JOIN siswa s ON pa.id_siswa = s.id_siswa
 ";
 
-$where_clauses = [];
+$params = [];
+$types = "";
+
 if ($filter_tipe == 'bulanan') {
-    $where_clauses[] = "DATE_FORMAT(pa.tanggal, '%Y-%m') = '" . mysqli_real_escape_string($koneksi, $filter_bulan) . "'";
+    $where_clauses[] = "DATE_FORMAT(pa.tanggal, '%Y-%m') = ?";
+    $params[] = $filter_bulan;
+    $types .= "s";
 } else { // pekanan
     $tahun = substr($filter_pekan, 0, 4);
     $pekan = substr($filter_pekan, 6, 2);
-    $where_clauses[] = "YEARWEEK(pa.tanggal, 1) = '" . mysqli_real_escape_string($koneksi, $tahun . $pekan) . "'";
+    $where_clauses[] = "YEARWEEK(pa.tanggal, 1) = ?";
+    $params[] = $tahun . $pekan;
+    $types .= "s";
 }
 
 if ($filter_siswa) {
-    $where_clauses[] = "pa.id_siswa = $filter_siswa";
+    $where_clauses[] = "pa.id_siswa = ?";
+    $params[] = $filter_siswa;
+    $types .= "i";
 }
 
 if (!empty($where_clauses)) {
     $query_rekap .= " WHERE " . implode(' AND ', $where_clauses);
 }
 $query_rekap .= " ORDER BY pa.tanggal DESC, s.nama_lengkap ASC";
-$result_rekap = mysqli_query($koneksi, $query_rekap);
+
+$stmt_rekap = mysqli_prepare($koneksi, $query_rekap);
+if (!empty($params)) {
+    mysqli_stmt_bind_param($stmt_rekap, $types, ...$params);
+}
+mysqli_stmt_execute($stmt_rekap);
+$result_rekap = mysqli_stmt_get_result($stmt_rekap);
 
 // Ambil daftar siswa untuk dropdown filter
 $result_siswa_filter = mysqli_query($koneksi, "SELECT id_siswa, nama_lengkap FROM siswa ORDER BY nama_lengkap ASC");
@@ -96,10 +110,10 @@ template_header('Rekapitulasi Penilaian Akhlak');
                     <?php while($rekap = mysqli_fetch_assoc($result_rekap)): ?>
                     <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= date("d M Y", strtotime($rekap['tanggal'])) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?= htmlspecialchars($rekap['nama_lengkap']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($rekap['aspek_penilaian']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= htmlspecialchars($rekap['nilai']) ?></td>
-                        <td class="px-6 py-4 text-sm text-gray-500"><?= htmlspecialchars($rekap['catatan']) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900"><?= e($rekap['nama_lengkap']) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= e($rekap['aspek_penilaian']) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?= e($rekap['nilai']) ?></td>
+                        <td class="px-6 py-4 text-sm text-gray-500"><?= e($rekap['catatan']) ?></td>
                     </tr>
                     <?php endwhile; ?>
                 <?php else: ?>

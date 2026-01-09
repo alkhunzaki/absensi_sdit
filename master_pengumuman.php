@@ -12,8 +12,13 @@ $pesan_error = '';
 
 // Logika Hapus
 if (isset($_GET['hapus'])) {
+    check_csrf($_GET['csrf_token'] ?? '');
     $id = (int)$_GET['hapus'];
-    if (mysqli_query($koneksi, "DELETE FROM pengumuman WHERE id_pengumuman = $id")) {
+    
+    $stmt_hapus = mysqli_prepare($koneksi, "DELETE FROM pengumuman WHERE id_pengumuman = ?");
+    mysqli_stmt_bind_param($stmt_hapus, "i", $id);
+    
+    if (mysqli_stmt_execute($stmt_hapus)) {
         $pesan_sukses = "Pengumuman berhasil dihapus!";
     } else {
         $pesan_error = "Gagal menghapus: " . mysqli_error($koneksi);
@@ -22,13 +27,17 @@ if (isset($_GET['hapus'])) {
 
 // Logika Tambah
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['tambah'])) {
-    $judul = mysqli_real_escape_string($koneksi, $_POST['judul']);
-    $isi = mysqli_real_escape_string($koneksi, $_POST['isi']);
-    $kategori = mysqli_real_escape_string($koneksi, $_POST['kategori']);
+    check_csrf($_POST['csrf_token'] ?? '');
+    
+    $judul = $_POST['judul'];
+    $isi = $_POST['isi'];
+    $kategori = $_POST['kategori'];
     $tanggal = date('Y-m-d');
 
-    $query = "INSERT INTO pengumuman (judul, isi, kategori, tanggal) VALUES ('$judul', '$isi', '$kategori', '$tanggal')";
-    if (mysqli_query($koneksi, $query)) {
+    $stmt_tambah = mysqli_prepare($koneksi, "INSERT INTO pengumuman (judul, isi, kategori, tanggal) VALUES (?, ?, ?, ?)");
+    mysqli_stmt_bind_param($stmt_tambah, "ssss", $judul, $isi, $kategori, $tanggal);
+    
+    if (mysqli_stmt_execute($stmt_tambah)) {
         $pesan_sukses = "Pengumuman baru telah diterbitkan!";
     } else {
         $pesan_error = "Gagal menerbitkan: " . mysqli_error($koneksi);
@@ -57,6 +66,7 @@ template_header('Manajemen Pengumuman');
 <div class="bg-white p-6 rounded-lg shadow-md mb-8 border-l-4 border-blue-600">
     <h2 class="text-xl font-semibold mb-4 text-blue-800">Buat Pengumuman Baru</h2>
     <form action="master_pengumuman.php" method="post" class="space-y-4">
+        <input type="hidden" name="csrf_token" value="<?= get_csrf_token() ?>">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Judul Pengumuman</label>
@@ -108,9 +118,9 @@ template_header('Manajemen Pengumuman');
                                 <?= $row['kategori'] ?>
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= htmlspecialchars($row['judul']) ?></td>
+                        <td class="px-6 py-4 text-sm font-medium text-gray-900"><?= e($row['judul']) ?></td>
                         <td class="px-6 py-4 text-center">
-                            <button onclick="showDeleteModal('master_pengumuman.php?hapus=<?= $row['id_pengumuman'] ?>')" class="text-red-500 hover:text-red-700 font-medium text-sm">
+                            <button onclick="showDeleteModal('master_pengumuman.php?hapus=<?= $row['id_pengumuman'] ?>&csrf_token=<?= get_csrf_token() ?>')" class="text-red-500 hover:text-red-700 font-medium text-sm">
                                 <i class="fas fa-trash mr-1"></i> Hapus
                             </button>
                         </td>

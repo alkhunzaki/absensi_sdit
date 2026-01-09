@@ -49,8 +49,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['absensi'])) {
 // Mengambil data siswa
 $result_siswa = mysqli_query($koneksi, "SELECT * FROM siswa ORDER BY nama_lengkap ASC");
 $absensi_hari_ini = [];
-$query_absensi_hari_ini = "SELECT * FROM absensi WHERE tanggal = '$tanggal_filter'";
-$result_absensi_hari_ini = mysqli_query($koneksi, $query_absensi_hari_ini);
+
+// Gunakan Prepared Statement untuk mengambil absensi hari ini
+$stmt_absensi = mysqli_prepare($koneksi, "SELECT * FROM absensi WHERE tanggal = ?");
+mysqli_stmt_bind_param($stmt_absensi, "s", $tanggal_filter);
+mysqli_stmt_execute($stmt_absensi);
+$result_absensi_hari_ini = mysqli_stmt_get_result($stmt_absensi);
+
 while($row = mysqli_fetch_assoc($result_absensi_hari_ini)) {
     $absensi_hari_ini[$row['id_siswa']] = $row;
 }
