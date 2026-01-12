@@ -10,15 +10,16 @@ if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROT
 }
 
 // Pengaturan Sesi untuk Vercel (Menggunakan /tmp jika filesystem read-only)
-if (getenv('VERCEL') || getenv('DB_HOST')) {
-    ini_set('session.save_path', '/tmp');
+// Pengaturan Sesi
+if (getenv('VERCEL')) {
+    ini_set('session.save_path', '/tmp'); // Vercel butuh /tmp
 }
+// Pada shared hosting biasanya session sudah diatur otomatis oleh server.
 
-// Pengaturan Cookie yang lebih ketat tapi kompatibel
+// Pengaturan Cookie yang aman dan kompatibel
 session_set_cookie_params([
     'lifetime' => 0,
     'path' => '/',
-    'domain' => '',
     'secure' => isset($_SERVER['HTTPS']),
     'httponly' => true,
     'samesite' => 'Lax'
@@ -42,14 +43,13 @@ if (!$koneksi) {
 // Tambahkan timeout koneksi (5 detik) untuk menghindari hanging
 mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
 
-// Konfigurasi SSL untuk TiDB
-if (getenv('DB_HOST')) {
-    // Coba path CA umum di Linux/Vercel
+// Konfigurasi SSL (Hanya untuk Remote DB seperti TiDB Cloud)
+// Jika di Hosting Biasa (Localhost), SSL biasanya tidak diperlukan.
+if (getenv('VERCEL') && getenv('DB_HOST') && strpos(getenv('DB_HOST'), 'tidbcloud.com') !== false) {
     $ca_path = NULL;
     if (file_exists('/etc/ssl/certs/ca-certificates.crt')) {
         $ca_path = '/etc/ssl/certs/ca-certificates.crt';
     }
-    
     mysqli_ssl_set($koneksi, NULL, NULL, $ca_path, NULL, NULL); 
     $flags = MYSQLI_CLIENT_SSL;
 } else {
