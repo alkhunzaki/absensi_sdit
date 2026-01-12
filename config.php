@@ -49,6 +49,9 @@ try {
         throw new Exception(mysqli_connect_error());
     }
 } catch (mysqli_sql_exception $e) {
+    if (strpos($e->getMessage(), "Unknown database") !== false) {
+        die("Database '" . e($db_name) . "' tidak ditemukan. Silakan jalankan <a href='setup_db.php'>Setup Database</a>.");
+    }
     die("Koneksi ke database gagal: " . $e->getMessage());
 } catch (Exception $e) {
     die("Koneksi ke database gagal: " . $e->getMessage());
@@ -77,7 +80,14 @@ function get_csrf_token() {
 }
 
 function check_login() {
-    // Gunakan PHP Native Session yang sudah diperbaiki untuk auth
+    global $koneksi;
+    
+    // Cek apakah tabel 'users' ada
+    $check_table = mysqli_query($koneksi, "SHOW TABLES LIKE 'users'");
+    if (mysqli_num_rows($check_table) == 0) {
+        die("Tabel 'users' tidak ditemukan. Silakan jalankan <a href='update_db_security.php'>Update Security (Database)</a> terlebih dahulu untuk membuat akun admin.");
+    }
+
     if (!isset($_SESSION['admin_id'])) {
         header('Location: login.php');
         exit;

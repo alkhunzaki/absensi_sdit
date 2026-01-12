@@ -1,0 +1,8 @@
+.env
+debug.php
+/uploads/*
+!/uploads/.gitkeep
+/fpdf/
+*.log
+.DS_Store
+Thumbs.db

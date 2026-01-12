@@ -3,6 +3,12 @@ include 'config.php';
 check_login();
 
 // --- LOGIKA UNTUK DATA DASHBOARD ---
+// Cek tabel siswa
+$check_siswa = mysqli_query($koneksi, "SHOW TABLES LIKE 'siswa'");
+if (mysqli_num_rows($check_siswa) == 0) {
+    die("Tabel 'siswa' tidak ditemukan. Silakan jalankan <a href='setup_db.php'>Inisialisasi Database</a>.");
+}
+
 // 1. Menghitung Jumlah Siswa
 $result_jumlah_siswa = mysqli_query($koneksi, "SELECT COUNT(*) AS total FROM siswa");
 $data_jumlah_siswa = mysqli_fetch_assoc($result_jumlah_siswa);
@@ -10,15 +16,23 @@ $jumlah_siswa = $data_jumlah_siswa['total'];
 
 // 2. Data untuk Diagram Lingkaran (Presensi Hari Ini)
 $tanggal_hari_ini = date('Y-m-d');
-$query_pie_chart = "SELECT status, COUNT(*) as jumlah FROM absensi WHERE tanggal = '$tanggal_hari_ini' GROUP BY status";
-$result_pie_chart = mysqli_query($koneksi, $query_pie_chart);
-
-$data_pie = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];
-while ($row = mysqli_fetch_assoc($result_pie_chart)) {
-    $data_pie[$row['status']] = $row['jumlah'];
+// Cek tabel absensi
+$check_absensi = mysqli_query($koneksi, "SHOW TABLES LIKE 'absensi'");
+if (mysqli_num_rows($check_absensi) == 0) {
+    $data_pie_json = json_encode([0,0,0,0]);
+    $label_pie_json = json_encode(['Hadir', 'Izin', 'Sakit', 'Alfa']);
+    $data_pie = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];
+} else {
+    $query_pie_chart = "SELECT status, COUNT(*) as jumlah FROM absensi WHERE tanggal = '$tanggal_hari_ini' GROUP BY status";
+    $result_pie_chart = mysqli_query($koneksi, $query_pie_chart);
+    
+    $data_pie = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];
+    while ($row = mysqli_fetch_assoc($result_pie_chart)) {
+        $data_pie[$row['status']] = $row['jumlah'];
+    }
+    $data_pie_json = json_encode(array_values($data_pie));
+    $label_pie_json = json_encode(array_keys($data_pie));
 }
-$data_pie_json = json_encode(array_values($data_pie));
-$label_pie_json = json_encode(array_keys($data_pie));
 
 // 3. Data untuk Grafik Batang (Kehadiran per Bulan dalam 1 Tahun Terakhir)
 // PERBAIKAN: Query disesuaikan untuk sql_mode=only_full_group_by
