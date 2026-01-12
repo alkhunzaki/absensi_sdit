@@ -3,7 +3,7 @@ include 'config.php';
 
 // Jika sudah login, redirect ke dashboard
 if (isset($_SESSION['admin_id'])) {
-    header('Location: index.php');
+    header('Location: /index.php');
     exit;
 }
 
@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['admin_id'] = $user['id'];
             $_SESSION['username'] = $username;
             
-            header('Location: index.php');
+            header('Location: /index.php');
             exit;
         } else {
             $error_msg = 'Username atau password salah!';

@@ -4,13 +4,25 @@ File: config.php
 Fungsi: Konfigurasi utama, koneksi database, dan template.
 ==================================================
 */
+// Deteksi HTTPS di balik Proxy (seperti Vercel)
+if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    $_SERVER['HTTPS'] = 'on';
+}
+
 // Pengaturan Sesi untuk Vercel (Menggunakan /tmp jika filesystem read-only)
 if (getenv('VERCEL') || getenv('DB_HOST')) {
     ini_set('session.save_path', '/tmp');
 }
-ini_set('session.cookie_httponly', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
+
+// Pengaturan Cookie yang lebih ketat tapi kompatibel
+session_set_cookie_params([
+    'lifetime' => 0,
+    'path' => '/',
+    'domain' => '',
+    'secure' => isset($_SERVER['HTTPS']),
+    'httponly' => true,
+    'samesite' => 'Lax'
+]);
 
 session_start();
 
@@ -89,7 +101,7 @@ function check_login() {
     }
 
     if (!isset($_SESSION['admin_id'])) {
-        header('Location: login.php');
+        header('Location: /login.php');
         exit;
     }
 }
