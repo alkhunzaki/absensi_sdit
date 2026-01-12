@@ -3,9 +3,13 @@ include 'config.php';
 check_login();
 
 // --- LOGIKA UNTUK DATA DASHBOARD ---
-// Cek tabel siswa
-$check_siswa = mysqli_query($koneksi, "SHOW TABLES LIKE 'siswa'");
-if (mysqli_num_rows($check_siswa) == 0) {
+// Cek tabel 'siswa' dengan caching session
+if (!isset($_SESSION['table_exists']['siswa'])) {
+    $check_siswa = mysqli_query($koneksi, "SHOW TABLES LIKE 'siswa'");
+    $_SESSION['table_exists']['siswa'] = (mysqli_num_rows($check_siswa) > 0);
+}
+
+if (!$_SESSION['table_exists']['siswa']) {
     die("Tabel 'siswa' tidak ditemukan. Silakan jalankan <a href='setup_db.php'>Inisialisasi Database</a>.");
 }
 
@@ -16,9 +20,13 @@ $jumlah_siswa = $data_jumlah_siswa['total'];
 
 // 2. Data untuk Diagram Lingkaran (Presensi Hari Ini)
 $tanggal_hari_ini = date('Y-m-d');
-// Cek tabel absensi
-$check_absensi = mysqli_query($koneksi, "SHOW TABLES LIKE 'absensi'");
-if (mysqli_num_rows($check_absensi) == 0) {
+// Cek tabel 'absensi' dengan caching session
+if (!isset($_SESSION['table_exists']['absensi'])) {
+    $check_absensi = mysqli_query($koneksi, "SHOW TABLES LIKE 'absensi'");
+    $_SESSION['table_exists']['absensi'] = (mysqli_num_rows($check_absensi) > 0);
+}
+
+if (!$_SESSION['table_exists']['absensi']) {
     $data_pie_json = json_encode([0,0,0,0]);
     $label_pie_json = json_encode(['Hadir', 'Izin', 'Sakit', 'Alfa']);
     $data_pie = ['Hadir' => 0, 'Izin' => 0, 'Sakit' => 0, 'Alfa' => 0];

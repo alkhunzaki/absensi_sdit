@@ -39,6 +39,9 @@ if (!$koneksi) {
     die("mysqli_init failed");
 }
 
+// Tambahkan timeout koneksi (5 detik) untuk menghindari hanging
+mysqli_options($koneksi, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
+
 // Konfigurasi SSL untuk TiDB
 if (getenv('DB_HOST')) {
     // Coba path CA umum di Linux/Vercel
@@ -94,9 +97,13 @@ function get_csrf_token() {
 function check_login() {
     global $koneksi;
     
-    // Cek apakah tabel 'users' ada
-    $check_table = mysqli_query($koneksi, "SHOW TABLES LIKE 'users'");
-    if (mysqli_num_rows($check_table) == 0) {
+    // Cek apakah tabel 'users' ada (Cache hasil di SESSION agar tidak query terus)
+    if (!isset($_SESSION['table_exists']['users'])) {
+        $check_table = mysqli_query($koneksi, "SHOW TABLES LIKE 'users'");
+        $_SESSION['table_exists']['users'] = (mysqli_num_rows($check_table) > 0);
+    }
+
+    if (!$_SESSION['table_exists']['users']) {
         die("Tabel 'users' tidak ditemukan. Silakan jalankan <a href='update_db_security.php'>Update Security (Database)</a> terlebih dahulu untuk membuat akun admin.");
     }
 
